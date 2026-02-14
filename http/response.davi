@@ -1,4 +1,4 @@
-package davi_http;
+package http;
 
 // Response helper: wrap result map from curl.perform with .ok and .header(name)
 class Response {

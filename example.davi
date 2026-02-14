@@ -1,4 +1,4 @@
-use davi_http;
+use http;
 
 // Client with base URL (string) — example.com usually returns 200
 client = new HttpClient("https://example.com");

@@ -1,4 +1,4 @@
-package davi_http;
+package http;
 
 // OOP HTTP client using curl.* builtins. Use default options or pass per-request opts.
 class HttpClient {
