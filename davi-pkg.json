@@ -1,0 +1,20 @@
+{
+  "name": "http",
+  "version": "0.0.1",
+  "davi": {
+    "min_version": "0.5.2",
+    "max_version": "0.6.0"
+  },
+  "description": "HTTP client package for Davi",
+  "author": "Bozhidar Slaveykov",
+  "license": "MIT",
+  "main": "http",
+  "dependencies": {
+    "logger": "github.com/bobicloudvision/davi-http@main"
+  },
+  "files": [
+    "http.davi",
+    "http/response.davi"
+  ],
+  "keywords": ["http", "client", "rest", "api"]
+}
