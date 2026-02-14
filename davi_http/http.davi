@@ -1,0 +1,105 @@
+package davi_http;
+
+// OOP HTTP client using curl.* builtins. Use default options or pass per-request opts.
+class HttpClient {
+  public baseUrl = "";
+  public timeout = 0;
+  public auth = {};
+  public headers = {};
+  public insecureSkipVerify = false;
+  public noRedirect = false;
+
+  function init(a1) {
+    if (a1 != nil) {
+      if (type(a1) == "str") {
+        this.baseUrl = a1;
+      } else {
+        if (isset(a1["baseUrl"])) this.baseUrl = str(a1["baseUrl"]);
+        if (isset(a1["timeout"])) this.timeout = int(a1["timeout"]);
+        if (isset(a1["auth"])) this.auth = a1["auth"];
+        if (isset(a1["headers"])) this.headers = a1["headers"];
+        if (isset(a1["insecureSkipVerify"])) this.insecureSkipVerify = a1["insecureSkipVerify"];
+        if (isset(a1["noRedirect"])) this.noRedirect = a1["noRedirect"];
+      }
+    }
+  }
+
+  function _url(path) {
+    if (this.baseUrl == "" or path == nil or str(path) == "") return str(path);
+    base = this.baseUrl;
+    if (string.hasSuffix(base, "/")) base = string.trimSuffix(base, "/");
+    p = str(path);
+    if (string.hasPrefix(p, "/")) p = string.trimPrefix(p, "/");
+    return base . "/" . p;
+  }
+
+  function _opts(overrides) {
+    o = {};
+    o["timeout"] = this.timeout;
+    o["auth"] = this.auth;
+    o["insecureSkipVerify"] = this.insecureSkipVerify;
+    o["noRedirect"] = this.noRedirect;
+    for (k, v in this.headers) { o[k] = v; }
+    if (overrides != nil) {
+      for (k, v in overrides) { o[k] = v; }
+    }
+    return o;
+  }
+
+  function _headerList(opts) {
+    list = [];
+    for (k, v in opts) {
+      if (k != "timeout" and k != "auth" and k != "insecureSkipVerify" and k != "noRedirect") {
+        append(list, k . ": " . str(v));
+      }
+    }
+    return list;
+  }
+
+  function _do(method, url, body, opts) {
+    u = this._url(url);
+    o = (opts != nil) ? this._opts(opts) : this._opts({});
+    h = curl.easy();
+    curl.setopt(h, "URL", u);
+    if (int(o["timeout"]) > 0) curl.setopt(h, "TIMEOUT", o["timeout"]);
+    if (o["insecureSkipVerify"]) curl.setopt(h, "SSL_VERIFYPEER", false);
+    if (o["noRedirect"]) curl.setopt(h, "FOLLOWLOCATION", false);
+    if (isset(o["auth"]) and isset(o["auth"]["user"]) and isset(o["auth"]["pass"])) {
+      curl.setopt(h, "USERPWD", str(o["auth"]["user"]) . ":" . str(o["auth"]["pass"]));
+    }
+    hl = this._headerList(o);
+    if (array.len(hl) > 0) curl.setopt(h, "HTTPHEADER", hl);
+    if (method == "HEAD") {
+      curl.setopt(h, "NOBODY", true);
+    } else if (method != "GET") {
+      curl.setopt(h, "CUSTOMREQUEST", method);
+      if (body != nil and str(body) != "") {
+        curl.setopt(h, "POST", true);
+        curl.setopt(h, "POSTFIELDS", str(body));
+      }
+    }
+    res = curl.perform(h);
+    curl.close(h);
+    return res;
+  }
+
+  function get(url, opts) {
+    return this._do("GET", url, nil, opts);
+  }
+
+  function head(url, opts) {
+    return this._do("HEAD", url, nil, opts);
+  }
+
+  function post(url, body, opts) {
+    return this._do("POST", url, body, opts);
+  }
+
+  function request(method, url, body, opts) {
+    return this._do(method, url, body, opts);
+  }
+
+  function postForm(url, body, opts) {
+    return this.post(url, body, opts);
+  }
+}
