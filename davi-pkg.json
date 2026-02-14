@@ -13,7 +13,7 @@
     "logger": "github.com/bobicloudvision/davi-http@main"
   },
   "files": [
-    "http.davi",
+    "http/davi",
     "http/response.davi"
   ],
   "keywords": ["http", "client", "rest", "api"]
