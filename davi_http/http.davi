@@ -14,31 +14,35 @@ class HttpClient {
       if (type(a1) == "str") {
         this.baseUrl = a1;
       } else {
-        if (isset(a1["baseUrl"])) this.baseUrl = str(a1["baseUrl"]);
-        if (isset(a1["timeout"])) this.timeout = int(a1["timeout"]);
-        if (isset(a1["auth"])) this.auth = a1["auth"];
-        if (isset(a1["headers"])) this.headers = a1["headers"];
-        if (isset(a1["insecureSkipVerify"])) this.insecureSkipVerify = a1["insecureSkipVerify"];
-        if (isset(a1["noRedirect"])) this.noRedirect = a1["noRedirect"];
+        if (isset(a1["baseUrl"])) { this.baseUrl = str(a1["baseUrl"]); }
+        if (isset(a1["timeout"])) { this.timeout = int(a1["timeout"]); }
+        if (isset(a1["auth"])) { this.auth = a1["auth"]; }
+        if (isset(a1["headers"])) { this.headers = a1["headers"]; }
+        if (isset(a1["insecureSkipVerify"])) { this.insecureSkipVerify = a1["insecureSkipVerify"]; }
+        if (isset(a1["noRedirect"])) { this.noRedirect = a1["noRedirect"]; }
       }
     }
   }
 
   function _url(path) {
-    if (this.baseUrl == "" or path == nil or str(path) == "") return str(path);
+    if (this.baseUrl == "" or path == nil or str(path) == "") { return str(path); }
     base = this.baseUrl;
-    if (string.hasSuffix(base, "/")) base = string.trimSuffix(base, "/");
+    if (string.hasSuffix(base, "/")) { base = string.trimSuffix(base, "/"); }
     p = str(path);
-    if (string.hasPrefix(p, "/")) p = string.trimPrefix(p, "/");
+    if (string.hasPrefix(p, "/")) { p = string.trimPrefix(p, "/"); }
     return base . "/" . p;
   }
 
   function _opts(overrides) {
     o = {};
-    o["timeout"] = this.timeout;
-    o["auth"] = this.auth;
-    o["insecureSkipVerify"] = this.insecureSkipVerify;
-    o["noRedirect"] = this.noRedirect;
+    kT = "timeout";
+    kA = "auth";
+    kI = "insecureSkipVerify";
+    kN = "noRedirect";
+    o[kT] = this.timeout;
+    o[kA] = this.auth;
+    o[kI] = this.insecureSkipVerify;
+    o[kN] = this.noRedirect;
     for (k, v in this.headers) { o[k] = v; }
     if (overrides != nil) {
       for (k, v in overrides) { o[k] = v; }
@@ -58,17 +62,49 @@ class HttpClient {
 
   function _do(method, url, body, opts) {
     u = this._url(url);
-    o = (opts != nil) ? this._opts(opts) : this._opts({});
+    timeoutVal = this.timeout;
+    authVal = this.auth;
+    insecureVal = this.insecureSkipVerify;
+    noRedirectVal = this.noRedirect;
+    headerOverrides = {};
+    if (opts != nil) {
+      kT = "timeout";
+      kA = "auth";
+      kI = "insecureSkipVerify";
+      kN = "noRedirect";
+      if (isset(opts[kT])) { timeoutVal = int(opts[kT]); }
+      if (isset(opts[kA])) { authVal = opts[kA]; }
+      if (isset(opts[kI])) { insecureVal = opts[kI]; }
+      if (isset(opts[kN])) { noRedirectVal = opts[kN]; }
+      for (k, v in opts) {
+        if (k != "timeout" and k != "auth" and k != "insecureSkipVerify" and k != "noRedirect") {
+          headerOverrides[k] = v;
+        }
+      }
+    }
+    o = {};
+    kT = "timeout";
+    kA = "auth";
+    kI = "insecureSkipVerify";
+    kN = "noRedirect";
+    o[kT] = timeoutVal;
+    o[kA] = authVal;
+    o[kI] = insecureVal;
+    o[kN] = noRedirectVal;
+    for (k, v in this.headers) { o[k] = v; }
+    for (k, v in headerOverrides) { o[k] = v; }
     h = curl.easy();
     curl.setopt(h, "URL", u);
-    if (int(o["timeout"]) > 0) curl.setopt(h, "TIMEOUT", o["timeout"]);
-    if (o["insecureSkipVerify"]) curl.setopt(h, "SSL_VERIFYPEER", false);
-    if (o["noRedirect"]) curl.setopt(h, "FOLLOWLOCATION", false);
-    if (isset(o["auth"]) and isset(o["auth"]["user"]) and isset(o["auth"]["pass"])) {
-      curl.setopt(h, "USERPWD", str(o["auth"]["user"]) . ":" . str(o["auth"]["pass"]));
+    if (int(timeoutVal) > 0) { curl.setopt(h, "TIMEOUT", timeoutVal); }
+    if (insecureVal) { curl.setopt(h, "SSL_VERIFYPEER", false); }
+    if (noRedirectVal) { curl.setopt(h, "FOLLOWLOCATION", false); }
+    kUser = "user";
+    kPass = "pass";
+    if (isset(authVal) and isset(authVal[kUser]) and isset(authVal[kPass])) {
+      curl.setopt(h, "USERPWD", str(authVal[kUser]) . ":" . str(authVal[kPass]));
     }
     hl = this._headerList(o);
-    if (array.len(hl) > 0) curl.setopt(h, "HTTPHEADER", hl);
+    if (array.len(hl) > 0) { curl.setopt(h, "HTTPHEADER", hl); }
     if (method == "HEAD") {
       curl.setopt(h, "NOBODY", true);
     } else if (method != "GET") {

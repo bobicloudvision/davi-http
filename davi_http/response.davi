@@ -11,8 +11,8 @@ class Response {
     if (res != nil) {
       this.status = res["status"];
       this.body = res["body"];
-      this.headers = isset(res["headers"]) ? res["headers"] : {};
-      this.cookies = isset(res["cookies"]) ? res["cookies"] : [];
+      if (isset(res["headers"])) { this.headers = res["headers"]; } else { this.headers = {}; }
+      if (isset(res["cookies"])) { this.cookies = res["cookies"]; } else { this.cookies = []; }
     }
   }
 
@@ -22,7 +22,7 @@ class Response {
 
   function header(name) {
     for (k, v in this.headers) {
-      if (string.toLower(k) == string.toLower(name)) return v;
+      if (string.toLower(k) == string.toLower(name)) { return v; }
     }
     return "";
   }

@@ -1,33 +1,29 @@
 use davi_http;
 
-// Client with base URL (string)
+// Client with base URL (string) — example.com usually returns 200
 client = new HttpClient("https://example.com");
 res = client.get("/");
 resp = new Response();
 resp.init(res);
-echo("GET " . resp.status . " ok=" . resp.ok() . "\n");
-echo("body length: " . array.len(resp.body) . "\n");
-echo("Content-Type: " . resp.header("Content-Type") . "\n");
+echo("GET example.com " . resp.status . " ok=" . resp.ok() . " body_len=" . array.len(resp.body) . "\n");
 
 // Client with options map
 client2 = new HttpClient({
   "baseUrl": "https://httpbin.org",
   "timeout": 10,
-  "headers": { "User-Agent": "davi-http/1.0" }
+  "headers": { "User-Agent": "davi-http/1.0", "Accept": "application/json" }
 });
 res2 = client2.get("/get");
 resp2 = new Response();
 resp2.init(res2);
 echo("GET /get " . resp2.status . " ok=" . resp2.ok() . "\n");
 
-// POST with body
 res3 = client2.post("/post", "hello=world");
 resp3 = new Response();
 resp3.init(res3);
 echo("POST /post " . resp3.status . "\n");
 
-// Custom method
 res4 = client2.request("GET", "/headers", nil, nil);
 resp4 = new Response();
 resp4.init(res4);
-echo("request GET /headers " . resp4.status . "\n");
+echo("GET /headers " . resp4.status . "\n");
